@@ -1,0 +1,8 @@
+.todo-box {
+  border: 1px solid black;
+  padding: 10px;
+}
+
+.todo-box.todo-completed {
+  color: lightgray;
+}
