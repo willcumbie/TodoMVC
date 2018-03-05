@@ -1,7 +1,8 @@
 import { Todo } from '../types';
-import { Action } from 'redux';
-import { combineReducers, createStore } from 'redux';
+import { Dispatch } from 'react-redux';
+import { Action, combineReducers, createStore, applyMiddleware } from 'redux';
 import createHistory from 'history/createBrowserHistory';
+import thunkMiddleware from 'redux-thunk';
 
 enum Actions {
   CLOSE_TODO = 'CLOSE_TODO',
@@ -62,7 +63,15 @@ const todosReducer = (state = initialState, action: TodoAction): Array<Todo> => 
 export const store = createStore(
   combineReducers({
     todos: todosReducer
-  })
+  }),
+  applyMiddleware(thunkMiddleware)
 );
 
 export const history = createHistory({ basename: '/' });
+
+/* Thunks */
+
+export const CreateTodoThunk = (title: string) =>
+  async (dispatch: Dispatch<TodoAction>, getState: Function) => {
+    setTimeout(() => { dispatch(CreateTodo(title)); }, 2000);
+  };

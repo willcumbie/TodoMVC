@@ -4,7 +4,7 @@ import { RouteComponentProps } from 'react-router';
 import { Todo } from '../../types';
 import { TodoBox } from './TodoBox';
 import { NewTodoForm } from './NewTodoForm';
-import { CloseTodo, CreateTodo, TodoAction } from '../../reducers';
+import { CloseTodo, CreateTodoThunk, TodoAction } from '../../reducers';
 
 import './App.css';
 
@@ -19,7 +19,7 @@ interface MatchParams {
 interface Props extends RouteComponentProps<MatchParams> {
   readonly todoList: Array<Todo>;
   readonly completeTodo: () => TodoAction;
-  readonly createTodo: () => TodoAction;
+  readonly createTodo: () => Promise<void>;
 }
 
 class TodoList extends React.Component<Props, State> {
@@ -48,7 +48,7 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch<Function>) => ({
   completeTodo: (todoId: string) => dispatch(CloseTodo(todoId)),
-  createTodo: (todoTitle: string) => dispatch(CreateTodo(todoTitle)),
+  createTodo: (todoTitle: string) => dispatch(CreateTodoThunk(todoTitle)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(TodoList);
