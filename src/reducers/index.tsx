@@ -1,77 +1,63 @@
-import { Todo } from '../types';
-import { Dispatch } from 'react-redux';
-import { Action, combineReducers, createStore, applyMiddleware } from 'redux';
+import { init, Model, Models, Action } from '@rematch/core';
+import { Store } from 'redux';
 import createHistory from 'history/createBrowserHistory';
+import { Todo } from '../types';
 import thunkMiddleware from 'redux-thunk';
+import { reduxTodosReducer } from './redux_reducer';
 
-enum Actions {
-  CLOSE_TODO = 'CLOSE_TODO',
-  CREATE_TODO = 'CREATE_TODO'
-}
-
-export interface TodoAction extends Action {
-  readonly todoTitle?: string;
-  readonly todoId?: string;
-}
-
-export const CloseTodo = (id: string): TodoAction => {
-  return {
-    type: Actions.CLOSE_TODO,
-    todoId: id
-  };
+const halfSecondWait = () => {
+  return new Promise(resolve => {
+    setTimeout(() => { resolve(); }, 500);
+  });
 };
 
-export const CreateTodo = (title: string): TodoAction => {
-  return {
-    type: Actions.CREATE_TODO,
-    todoTitle: title
-  };
-};
-
-/* Initial State */
-
-const initialState = [
-  { id: '1234567', title: 'Install Redux', completed: true},
-  { id: '1234568', title: 'Run Linting', completed: false},
-  { id: '1234569', title: 'Figure out TypeScript', completed: false}
-];
-
-const todosReducer = (state = initialState, action: TodoAction): Array<Todo> => {
-  switch (action.type) {
-    case Actions.CREATE_TODO:
-      return state.concat([{
+const todos: Model = {
+  name: 'todos',
+  state: [
+    { id: '1234567', title: 'Install Rematch', completed: true},
+    { id: '1234568', title: 'Run Rematch Reducers in Parallel with Redux Reducers', completed: false},
+    { id: '1234569', title: 'Figure out TypeScript', completed: false}
+  ],
+  reducers: {
+    create: (state, title) => state.concat([{
         id: Math.random().toString(36).substring(7),
-        title: action.todoTitle || 'Todo',
+        title: title || 'Todo',
         completed: false
-      }]);
-    case Actions.CLOSE_TODO:
+      }]),
+    close: (state, id) => {
       return state.map((todo: Todo) => {
-        if (todo.id !== action.todoId) {
-          return todo;
+        if (todo.id === id) {
+          return { ...todo, completed: true };
         }
-
-        return {
-          ...todo,
-          completed: true
-        };
+        return todo;
       });
-    default:
-      return state;
+    }
+  },
+  effects: {
+    asyncCreate: async function(this: TodoModel, title: string, state: Models) {
+      await halfSecondWait();
+      this.create(title);
+    }
   }
 };
 
-export const store = createStore(
-  combineReducers({
-    todos: todosReducer
-  }),
-  applyMiddleware(thunkMiddleware)
-);
+export interface TodoModel extends Model {
+  asyncCreate: (name: string) => Action;
+  create: (name: string) => Action;
+  close: (name: string) => Action;
+}
+
+export interface MyModels extends Models {
+  todos: TodoModel;
+}
+
+export const store: Store<Models> = init({
+  models: { todos },
+  redux: {
+    reducers: { reduxTodos: reduxTodosReducer },
+    middlewares: [thunkMiddleware]
+  }
+
+});
 
 export const history = createHistory({ basename: '/' });
-
-/* Thunks */
-
-export const CreateTodoThunk = (title: string) =>
-  async (dispatch: Dispatch<TodoAction>, getState: Function) => {
-    setTimeout(() => { dispatch(CreateTodo(title)); }, 2000);
-  };
