@@ -2,6 +2,8 @@ import { init, Model, Models, Action } from '@rematch/core';
 import { Store } from 'redux';
 import createHistory from 'history/createBrowserHistory';
 import { Todo } from '../types';
+import thunkMiddleware from 'redux-thunk';
+import { reduxTodosReducer } from './redux_reducer';
 
 const halfSecondWait = () => {
   return new Promise(resolve => {
@@ -12,8 +14,8 @@ const halfSecondWait = () => {
 const todos: Model = {
   name: 'todos',
   state: [
-    { id: '1234567', title: 'Install Redux', completed: true},
-    { id: '1234568', title: 'Run Linting', completed: false},
+    { id: '1234567', title: 'Install Rematch', completed: true},
+    { id: '1234568', title: 'Run Rematch Reducers in Parallel with Redux Reducers', completed: false},
     { id: '1234569', title: 'Figure out TypeScript', completed: false}
   ],
   reducers: {
@@ -50,7 +52,12 @@ export interface MyModels extends Models {
 }
 
 export const store: Store<Models> = init({
-  models: { todos }
+  models: { todos },
+  redux: {
+    reducers: { reduxTodos: reduxTodosReducer },
+    middlewares: [thunkMiddleware]
+  }
+
 });
 
 export const history = createHistory({ basename: '/' });
